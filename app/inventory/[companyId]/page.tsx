@@ -1,23 +1,31 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useInventory } from "../../store/inventory";
-import { DEFAULT_COLUMNS } from "../../types/inventory";
-import type { InventoryRow, RowDraft } from "../../types/inventory";
-import { InventoryTable } from "../../components/InventoryTable";
-import { ProductForm } from "../../components/ProductForm";
-import { AddColumnDialog } from "../../components/AddColumnDialog";
-import { ConfirmDelete, Toasts } from "../../components/Feedback";
-import { Button } from "../../components/ui";
+import { useParams } from "next/navigation";
+import { useInventory } from "../../../store/inventory";
+import { DEFAULT_COLUMNS } from "../../../types/inventory";
+import type { InventoryRow, RowDraft } from "../../../types/inventory";
+import { InventoryTable } from "../../../components/InventoryTable";
+import { ProductForm } from "../../../components/ProductForm";
+import { AddColumnDialog } from "../../../components/AddColumnDialog";
+import { ConfirmDelete, Toasts } from "../../../components/Feedback";
+import { Button } from "../../../components/ui";
 import { Plus, Columns3, Search, RefreshCw, Boxes } from "lucide-react";
 
 export default function InventoryPage() {
+  // company scope from the URL: /[companyId]/inventory
+  const params = useParams();
+  const companyId = Array.isArray(params.companyId)
+    ? params.companyId[0]
+    : ((params.companyId as string | undefined) ?? "");
+
   // store
   const rows = useInventory((s) => s.rows);
   const loading = useInventory((s) => s.loading);
   const error = useInventory((s) => s.error);
   const customColumns = useInventory((s) => s.customColumns);
-  const { load, addRow, editRow, deleteRow, removeColumn } = useInventory();
+  const { setCompany, load, addRow, editRow, deleteRow, removeColumn } =
+    useInventory();
 
   // local ui state
   const [query, setQuery] = useState("");
@@ -38,17 +46,21 @@ export default function InventoryPage() {
     let low = 0;
     let out = 0;
     for (const r of rows) {
-      totalUnits += r.stock || 0;
-      value += (r.price || 0) * (r.stock || 0);
-      if (r.stock > 0 && r.stock <= 5) low++;
-      if (r.stock === 0 || r.status === "out_of_stock") out++;
+      const qty = r.inventory_quantity || 0;
+      const unitPrice = r.offer_price || r.regular_price || 0;
+      totalUnits += qty;
+      value += unitPrice * qty;
+      if (qty > 0 && qty <= 5) low++;
+      if (qty === 0) out++;
     }
     return { count: rows.length, totalUnits, value, low, out };
   }, [rows]);
 
   useEffect(() => {
+    if (!companyId) return;
+    setCompany(companyId);
     load();
-  }, [load]);
+  }, [companyId, setCompany, load]);
 
   // handlers
   const openCreate = () => {
@@ -99,7 +111,7 @@ export default function InventoryPage() {
       <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat
           label="Inventory value"
-          value={`$${stats.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          value={`৳${stats.value.toLocaleString("en-BD", { maximumFractionDigits: 0 })}`}
           accent
         />
         <Stat label="Total units" value={stats.totalUnits.toLocaleString()} />
@@ -124,7 +136,7 @@ export default function InventoryPage() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, SKU, category…"
+            placeholder="Search by name, ID, category…"
             className="h-10 w-full rounded-md border border-[var(--line)] bg-[var(--surface)] pl-9 pr-3 text-sm text-[var(--text)] placeholder:text-[var(--text-faint)] focus:border-[var(--amber)]"
           />
         </div>
@@ -171,7 +183,7 @@ export default function InventoryPage() {
       <AddColumnDialog open={colOpen} onClose={() => setColOpen(false)} />
       <ConfirmDelete
         open={!!deleting}
-        productName={deleting?.name ?? ""}
+        productName={deleting?.product_name ?? ""}
         onClose={() => setDeleting(undefined)}
         onConfirm={confirmDelete}
       />

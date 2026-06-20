@@ -8,21 +8,21 @@
 */
 
 :root {
-  --bg: #0f1419;
-  --surface: #161c24;
-  --surface-2: #1d2530;
-  --line: #2a3441;
-  --line-soft: #222b36;
-  --text: #e8edf2;
-  --text-dim: #9aa7b4;
-  --text-faint: #66727f;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --line: #dde1e7;
+  --line-soft: #e8ebef;
+  --text: #1a212b;
+  --text-dim: #5a6573;
+  --text-faint: #93a0ad;
 
-  --amber: #f2a83b;
-  --amber-press: #d9912a;
+  --amber: #e0901f;
+  --amber-press: #c67c12;
 
-  --ok: #4ec9a3;
-  --warn: #f2a83b;
-  --bad: #e8705a;
+  --ok: #1f9d6b;
+  --warn: #d9911f;
+  --bad: #d24b34;
   --neutral: #7d8997;
 
   --radius: 8px;

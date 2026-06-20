@@ -1,5 +1,5 @@
-import type { InventoryRow } from "./../types/inventory";
-import { DEFAULT_COLUMNS } from "./../types/inventory";
+import type { InventoryRow } from "@/types/inventory";
+import { DEFAULT_COLUMNS } from "@/types/inventory";
 
 /** crypto.randomUUID with a fallback for odd runtimes. */
 export function newId(): string {
@@ -10,7 +10,6 @@ export function newId(): string {
 }
 
 const DEFAULT_KEYS = new Set(DEFAULT_COLUMNS.map((c) => c.key));
-const VALID_STATUS = new Set(["active", "draft", "archived", "out_of_stock"]);
 
 function toNumber(v: unknown): number {
   if (typeof v === "number") return v;
@@ -27,7 +26,10 @@ function toNumber(v: unknown): number {
  * survive a round trip even if n8n flattens them.
  */
 export function coerceRow(input: unknown): InventoryRow {
-  const o = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const o = (input && typeof input === "object" ? input : {}) as Record<
+    string,
+    unknown
+  >;
 
   // attributes may arrive nested or flattened; merge both.
   const nested =
@@ -41,17 +43,18 @@ export function coerceRow(input: unknown): InventoryRow {
     }
   }
 
-  const status = String(o.status ?? "draft");
-
   return {
     id: String(o.id ?? newId()),
-    name: String(o.name ?? ""),
-    sku: String(o.sku ?? ""),
+    unique_product_id: String(o.unique_product_id ?? ""),
+    product_name: String(o.product_name ?? ""),
     category: String(o.category ?? ""),
-    price: toNumber(o.price),
-    stock: toNumber(o.stock ?? o.stockQuantity ?? o.quantity),
-    status: (VALID_STATUS.has(status) ? status : "draft") as InventoryRow["status"],
-    createdAt: String(o.createdAt ?? o.created_at ?? new Date().toISOString()),
+    description: String(o.description ?? ""),
+    size: String(o.size ?? ""),
+    color: String(o.color ?? ""),
+    regular_price: toNumber(o.regular_price),
+    offer_price: toNumber(o.offer_price),
+    image_url: String(o.image_url ?? ""),
+    inventory_quantity: toNumber(o.inventory_quantity),
     attributes: { ...flattened, ...nested } as InventoryRow["attributes"],
   };
 }

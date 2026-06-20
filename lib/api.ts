@@ -1,34 +1,45 @@
-import type { InventoryRow, RowDraft } from "./../types/inventory";
+import type { InventoryRow, RowDraft } from "@/types/inventory";
 
 async function json<T>(res: Response): Promise<T> {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error((data as { error?: string }).error ?? `Request failed (${res.status}).`);
+    throw new Error(
+      (data as { error?: string }).error ?? `Request failed (${res.status}).`,
+    );
   }
   return data as T;
 }
 
+const post = (path: string, payload: unknown) =>
+  fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+/**
+ * Every call is scoped to a company. The companyId is sent in the JSON body
+ * so the Next.js route handlers can forward it to n8n, which filters/inserts
+ * by company_id.
+ */
 export const api = {
-  list: () => fetch("/api/inventory/list").then((r) => json<{ rows: InventoryRow[] }>(r)),
+  list: (companyId: string) =>
+    post("/api/inventory/list", { company_id: companyId }).then((r) =>
+      json<{ rows: InventoryRow[] }>(r),
+    ),
 
-  create: (draft: RowDraft) =>
-    fetch("/api/inventory/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(draft),
-    }).then((r) => json<{ row: InventoryRow }>(r)),
+  create: (companyId: string, draft: RowDraft) =>
+    post("/api/inventory/create", { ...draft, company_id: companyId }).then(
+      (r) => json<{ row: InventoryRow }>(r),
+    ),
 
-  update: (row: InventoryRow) =>
-    fetch("/api/inventory/update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(row),
-    }).then((r) => json<{ row: InventoryRow }>(r)),
+  update: (companyId: string, row: InventoryRow) =>
+    post("/api/inventory/update", { ...row, company_id: companyId }).then((r) =>
+      json<{ row: InventoryRow }>(r),
+    ),
 
-  remove: (id: string) =>
-    fetch("/api/inventory/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    }).then((r) => json<{ id: string }>(r)),
+  remove: (companyId: string, id: string) =>
+    post("/api/inventory/delete", { id, company_id: companyId }).then((r) =>
+      json<{ id: string }>(r),
+    ),
 };

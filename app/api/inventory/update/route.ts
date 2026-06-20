@@ -9,14 +9,22 @@ export async function POST(req: NextRequest) {
     if (!body.id) {
       return NextResponse.json({ error: "Missing row id." }, { status: 400 });
     }
+    if (!body.company_id) {
+      return NextResponse.json(
+        { error: "Missing company_id." },
+        { status: 400 },
+      );
+    }
     const raw = await callN8n(N8N.endpoints.update, { payload: body });
     const echoed = normalizeListResponse(raw)[0];
     const row = coerceRow(echoed ?? body);
     return NextResponse.json({ row });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to update product." },
-      { status: 502 }
+      {
+        error: err instanceof Error ? err.message : "Failed to update product.",
+      },
+      { status: 502 },
     );
   }
 }

@@ -8,10 +8,7 @@ import { useInventory } from "./../store/inventory";
 const TYPE_OPTIONS: { value: ColumnType; label: string }[] = [
   { value: "text", label: "Text" },
   { value: "number", label: "Number" },
-  { value: "currency", label: "Currency" },
-  { value: "date", label: "Date" },
   { value: "boolean", label: "Yes / No" },
-  { value: "select", label: "Dropdown" },
 ];
 
 function slugify(s: string): string {

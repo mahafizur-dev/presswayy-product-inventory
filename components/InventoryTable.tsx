@@ -1,10 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { ColumnDef, InventoryRow } from "./../types/inventory";
+import type { ColumnDef, InventoryRow } from "@/types/inventory";
 import { Cell } from "./Cell";
 import { Button } from "./ui";
-import { Pencil, Trash2, X, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  X,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
 
 type SortDir = "asc" | "desc";
 
@@ -29,8 +36,8 @@ export function InventoryTable({
   onDelete: (row: InventoryRow) => void;
   onRemoveColumn: (key: string) => void;
 }) {
-  const [sortKey, setSortKey] = useState<string>("createdAt");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [sortKey, setSortKey] = useState<string>("");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -38,10 +45,12 @@ export function InventoryTable({
     if (q) {
       list = rows.filter((r) => {
         const haystack = [
-          r.name,
-          r.sku,
+          r.unique_product_id,
+          r.product_name,
           r.category,
-          r.status,
+          r.description,
+          r.size,
+          r.color,
           ...Object.values(r.attributes ?? {}).map((v) => String(v ?? "")),
         ]
           .join(" ")
@@ -49,14 +58,18 @@ export function InventoryTable({
         return haystack.includes(q);
       });
     }
-    const col = columns.find((c) => c.key === sortKey);
+    // No sort column selected → keep the order rows arrive in (DB FIFO order).
+    const col = sortKey ? columns.find((c) => c.key === sortKey) : undefined;
+    if (!col) return list;
     const sorted = [...list].sort((a, b) => {
-      const av = col ? valueFor(a, col) : a.createdAt;
-      const bv = col ? valueFor(b, col) : b.createdAt;
-      if (col && (col.type === "number" || col.type === "currency")) {
+      const av = valueFor(a, col);
+      const bv = valueFor(b, col);
+      if (col.type === "number" || col.type === "currency") {
         return Number(av ?? 0) - Number(bv ?? 0);
       }
-      return String(av ?? "").localeCompare(String(bv ?? ""), undefined, { numeric: true });
+      return String(av ?? "").localeCompare(String(bv ?? ""), undefined, {
+        numeric: true,
+      });
     });
     return sortDir === "asc" ? sorted : sorted.reverse();
   }, [rows, query, sortKey, sortDir, columns]);
@@ -94,7 +107,10 @@ export function InventoryTable({
                           <ArrowDown size={12} />
                         )
                       ) : (
-                        <ArrowUpDown size={12} className="opacity-0 group-hover:opacity-50" />
+                        <ArrowUpDown
+                          size={12}
+                          className="opacity-0 group-hover:opacity-50"
+                        />
                       )}
                     </button>
                     {col.custom && (
@@ -111,7 +127,7 @@ export function InventoryTable({
                 </th>
               );
             })}
-            <th className="sticky top-0 bg-[var(--surface)] px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--text-dim)]">
+            <th className="sticky right-0 top-0 z-20 bg-[var(--surface)] px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--text-dim)] shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)]">
               Actions
             </th>
           </tr>
@@ -120,14 +136,17 @@ export function InventoryTable({
           {filtered.map((row) => (
             <tr
               key={row.id}
-              className="border-b border-[var(--line-soft)] transition-colors last:border-0 hover:bg-[var(--surface-2)]/60"
+              className="group border-b border-[var(--line-soft)] transition-colors last:border-0 hover:bg-[var(--surface-2)]/60"
             >
               {columns.map((col) => (
-                <td key={col.key} className={`px-4 py-3 align-middle ${col.width ?? ""}`}>
+                <td
+                  key={col.key}
+                  className={`px-4 py-3 align-middle ${col.width ?? ""}`}
+                >
                   <Cell row={row} col={col} />
                 </td>
               ))}
-              <td className="px-4 py-3">
+              <td className="sticky right-0 z-10 bg-[var(--surface)] px-4 py-3 shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)] transition-colors group-hover:bg-[var(--surface-2)]">
                 <div className="flex items-center justify-end gap-1">
                   <button
                     onClick={() => onEdit(row)}
@@ -156,7 +175,9 @@ export function InventoryTable({
             {query ? "No products match your search." : "No products yet."}
           </p>
           <p className="text-sm text-[var(--text-dim)]">
-            {query ? "Try a different term." : "Add your first product to get started."}
+            {query
+              ? "Try a different term."
+              : "Add your first product to get started."}
           </p>
         </div>
       )}

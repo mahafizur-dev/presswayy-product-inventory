@@ -1,4 +1,22 @@
-export type ColumnType = "text" | "number" | "currency" | "date" | "select" | "boolean";
+/**
+ * Domain types.
+ *
+ * The table has two kinds of fields:
+ *  - DEFAULT columns: fixed, known at build time (the 10 product columns).
+ *  - CUSTOM columns: defined at runtime by the user and stored inside the
+ *    flexible `attributes` JSON bag on every row.
+ *
+ * A ColumnDef describes *how to render and validate* a column, whether it's
+ * default or custom. This is what makes the table dynamic.
+ */
+
+export type ColumnType =
+  | "text"
+  | "number"
+  | "currency"
+  | "date"
+  | "select"
+  | "boolean";
 
 export interface ColumnDef {
   /** Stable key. For defaults this is a top-level row field; for custom it lives in `attributes`. */
@@ -18,44 +36,106 @@ export interface ColumnDef {
 
 export interface InventoryRow {
   id: string;
-  name: string;
-  sku: string;
+  unique_product_id: string;
+  product_name: string;
   category: string;
-  price: number;
-  stock: number;
-  status: "active" | "draft" | "archived" | "out_of_stock";
-  createdAt: string; // ISO date
+  description: string;
+  size: string;
+  color: string;
+  regular_price: number;
+  offer_price: number;
+  image_url: string;
+  inventory_quantity: number;
   /** all user-defined custom columns live here */
   attributes: Record<string, string | number | boolean | null>;
 }
 
-export type RowDraft = Omit<InventoryRow, "id" | "createdAt"> & {
+export type RowDraft = Omit<InventoryRow, "id"> & {
   id?: string;
-  createdAt?: string;
 };
 
-/** The seven predefined default columns, in display order. */
+/** The ten predefined default columns, in display order. */
 export const DEFAULT_COLUMNS: ColumnDef[] = [
-  { key: "name", label: "Product name", type: "text", system: true, custom: false, required: true, width: "min-w-48" },
-  { key: "sku", label: "SKU", type: "text", system: true, custom: false, required: true, width: "min-w-32" },
-  { key: "category", label: "Category", type: "text", system: true, custom: false, width: "min-w-36" },
-  { key: "price", label: "Price", type: "currency", system: true, custom: false, width: "min-w-28" },
-  { key: "stock", label: "Stock quantity", type: "number", system: true, custom: false, width: "min-w-28" },
   {
-    key: "status",
-    label: "Status",
-    type: "select",
+    key: "unique_product_id",
+    label: "Product ID",
+    type: "text",
     system: true,
     custom: false,
-    options: ["active", "draft", "archived", "out_of_stock"],
+    required: true,
     width: "min-w-32",
   },
-  { key: "createdAt", label: "Created date", type: "date", system: true, custom: false, width: "min-w-36" },
+  {
+    key: "product_name",
+    label: "Product name",
+    type: "text",
+    system: true,
+    custom: false,
+    required: true,
+    width: "min-w-48",
+  },
+  {
+    key: "category",
+    label: "Category",
+    type: "text",
+    system: true,
+    custom: false,
+    width: "min-w-36",
+  },
+  {
+    key: "description",
+    label: "Description",
+    type: "text",
+    system: true,
+    custom: false,
+    width: "min-w-56",
+  },
+  {
+    key: "size",
+    label: "Size",
+    type: "text",
+    system: true,
+    custom: false,
+    width: "min-w-24",
+  },
+  {
+    key: "color",
+    label: "Color",
+    type: "text",
+    system: true,
+    custom: false,
+    width: "min-w-24",
+  },
+  {
+    key: "regular_price",
+    label: "Regular price",
+    type: "currency",
+    system: true,
+    custom: false,
+    width: "min-w-28",
+  },
+  {
+    key: "offer_price",
+    label: "Offer price",
+    type: "currency",
+    system: true,
+    custom: false,
+    width: "min-w-28",
+  },
+  {
+    key: "image_url",
+    label: "Image URL",
+    type: "text",
+    system: true,
+    custom: false,
+    width: "min-w-48",
+  },
+  {
+    key: "inventory_quantity",
+    label: "Inventory quantity",
+    type: "number",
+    system: true,
+    custom: false,
+    width: "min-w-28",
+  },
 ];
-
-export const STATUS_LABELS: Record<InventoryRow["status"], string> = {
-  active: "Active",
-  draft: "Draft",
-  archived: "Archived",
-  out_of_stock: "Out of stock",
-};
