@@ -101,32 +101,9 @@ export const useInventory = create<InventoryState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { rows } = await api.list(companyId);
-      // reconcile: union of cached defs + any attribute keys seen in data.
-      // Match keys tolerantly (vats vs Vats) so the backend's prettified
-      // attribute keys don't create duplicate columns next to the user's.
-      const norm = (k: string) =>
-        String(k || "")
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "");
-      const cached = loadCustomDefs(companyId);
-      const seen = new Map(cached.map((d) => [d.key, d]));
-      const seenNorm = new Set(cached.map((d) => norm(d.key)));
-      for (const row of rows) {
-        for (const key of Object.keys(row.attributes ?? {})) {
-          if (!seenNorm.has(norm(key))) {
-            seenNorm.add(norm(key));
-            seen.set(key, {
-              key,
-              label: key,
-              type: "text",
-              system: false,
-              custom: true,
-            });
-          }
-        }
-      }
-      const customColumns = [...seen.values()];
-      saveCustomDefs(companyId, customColumns);
+
+      const customColumns = loadCustomDefs(companyId);
+
       set({ rows, customColumns, loading: false });
     } catch (err) {
       set({
