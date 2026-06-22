@@ -20,11 +20,6 @@ function toNumber(v: unknown): number {
   return 0;
 }
 
-/**
- * Maps an unknown object (whatever n8n hands back) into a strict InventoryRow.
- * Unknown top-level fields are swept into `attributes` so custom columns
- * survive a round trip even if n8n flattens them.
- */
 export function coerceRow(input: unknown): InventoryRow {
   const o = (input && typeof input === "object" ? input : {}) as Record<
     string,

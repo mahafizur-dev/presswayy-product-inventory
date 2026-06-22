@@ -1,15 +1,3 @@
-/**
- * Domain types.
- *
- * The table has two kinds of fields:
- *  - DEFAULT columns: fixed, known at build time (the 10 product columns).
- *  - CUSTOM columns: defined at runtime by the user and stored inside the
- *    flexible `attributes` JSON bag on every row.
- *
- * A ColumnDef describes *how to render and validate* a column, whether it's
- * default or custom. This is what makes the table dynamic.
- */
-
 export type ColumnType =
   | "text"
   | "number"

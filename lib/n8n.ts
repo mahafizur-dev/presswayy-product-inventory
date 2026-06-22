@@ -1,13 +1,6 @@
 import { N8N, type EndpointConfig } from "./config";
 
-/**
- * Server-only helper that talks to n8n. Lives behind Next.js route handlers so
- * the webhook URLs and any future auth stay off the client and CORS is a
- * non-issue.
- */
-
 interface CallOptions {
-  /** body for POST/PUT/PATCH, or query params for GET/DELETE */
   payload?: Record<string, unknown>;
 }
 
@@ -39,7 +32,6 @@ export async function callN8n(
     );
   }
 
-  // n8n may return empty body on success (e.g. "no item to return")
   if (!text.trim()) return {};
   try {
     return JSON.parse(text);

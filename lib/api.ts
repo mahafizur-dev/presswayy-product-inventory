@@ -17,11 +17,7 @@ const post = (path: string, payload: unknown) =>
     body: JSON.stringify(payload),
   });
 
-/**
- * Every call is scoped to a company. The companyId is sent in the JSON body
- * so the Next.js route handlers can forward it to n8n, which filters/inserts
- * by company_id.
- */
+
 export const api = {
   list: (companyId: string) =>
     post("/api/inventory/list", { company_id: companyId }).then((r) =>
